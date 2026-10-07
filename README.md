@@ -2,7 +2,7 @@
   <img width="300" alt="file-951ef72b887a698fa0a326b32f9cf517" src="https://github.com/user-attachments/assets/36de99b0-33ac-4c17-ad95-f41d7ea087da" align="center" />
 </p>
 <h1 align="center" style="margin-top: 0px;font-weight:800;">Loki</h1>
-<h3 align="center"><b>A Simple Tool For Managing SSH Localhost Forarding</b></h3>
+<h3 align="center"><b>A Simple Tool For Managing SSH Localhost Forwarding</b></h3>
 <br><br />
 
 ## About
