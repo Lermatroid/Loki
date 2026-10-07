@@ -77,4 +77,10 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add Formula/loki.rb
           git commit -m "Update Homebrew formula to $VERSION"
-          git -c credential.helper='!gh auth git-credential' push "https://github.com/$GH_REPO.git" HEAD:main
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git -c credential.helper='!gh auth git-credential' push "https://github.com/$GH_REPO.git" HEAD:main; then
+              break
+            fi
+            if [[ "$attempt" == 3 ]]; then exit 1; fi
+          done

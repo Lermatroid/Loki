@@ -8,7 +8,10 @@ class Loki < Formula
 
   depends_on xcode: ["26.0", :build]
   depends_on :macos
-  depends_on macos: :sonoma
+
+  on_macos do
+    depends_on macos: :sonoma
+  end
 
   def install
     ENV["VERSION"] = version.to_s
@@ -22,6 +25,7 @@ class Loki < Formula
       fi
       exec /usr/bin/open "#{opt_libexec}/Loki.app" --args "$@"
     SH
+    (bin/"loki").chmod 0555
   end
 
   def caveats
