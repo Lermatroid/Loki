@@ -16,14 +16,6 @@ fi
 if [[ -n "${BUILD_NUMBER:-}" ]]; then
     /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP/Contents/Info.plist"
 fi
-if [[ -n "${SIGNING_IDENTITY:-}" ]]; then
-    SIGNING_ARGS=(--force --sign "$SIGNING_IDENTITY" --options runtime --timestamp)
-    if [[ -n "${SIGNING_KEYCHAIN:-}" ]]; then
-        SIGNING_ARGS+=(--keychain "$SIGNING_KEYCHAIN")
-    fi
-    codesign "${SIGNING_ARGS[@]}" "$APP"
-else
-    codesign --force --sign - "$APP"
-fi
+codesign --force --sign - "$APP"
 codesign --verify --strict --verbose=2 "$APP"
 echo "$APP"

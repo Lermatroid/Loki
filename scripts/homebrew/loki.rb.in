@@ -1,0 +1,42 @@
+class Loki < Formula
+  desc "Menu bar app for SSH port forwarding"
+  homepage "https://github.com/Lermatroid/Loki"
+  url "@SOURCE_URL@"
+  version "@VERSION@"
+  sha256 "@SOURCE_SHA256@"
+  license "MIT"
+
+  depends_on xcode: ["16.0", :build]
+  depends_on :macos
+  depends_on macos: :sonoma
+
+  def install
+    ENV["VERSION"] = version.to_s
+    ENV["BUILD_NUMBER"] = "1"
+    system "bash", "scripts/build.sh"
+    libexec.install "dist/Loki.app"
+    (bin/"loki").write <<~SH
+      #!/bin/bash
+      if [[ "${1:-}" == "--version" ]]; then
+        exec "#{opt_libexec}/Loki.app/Contents/MacOS/Loki" --version
+      fi
+      exec /usr/bin/open "#{opt_libexec}/Loki.app" --args "$@"
+    SH
+  end
+
+  def caveats
+    <<~EOS
+      Run `loki` to open the menu bar app.
+
+      To also show Loki in Applications:
+        mkdir -p ~/Applications
+        ln -s #{opt_libexec}/Loki.app ~/Applications/Loki.app
+    EOS
+  end
+
+  test do
+    assert_equal "Loki #{version}", shell_output("#{bin}/loki --version").strip
+    system "/usr/bin/codesign", "--verify", "--strict", libexec/"Loki.app"
+    refute_match "com.apple.quarantine", shell_output("/usr/bin/xattr #{libexec}/Loki.app")
+  end
+end
