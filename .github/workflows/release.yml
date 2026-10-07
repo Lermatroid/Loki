@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version for a test bottle build (does not publish)
+        required: true
+        default: '0.1.0'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: homebrew-release
+  cancel-in-progress: false
+
+jobs:
+  bottle:
+    runs-on: macos-15
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate version
+        env:
+          REF: ${{ github.ref_name }}
+          EVENT: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$EVENT" == push ]]; then
+            VERSION="${REF#v}"
+            git merge-base --is-ancestor HEAD origin/main
+          else
+            VERSION="${INPUT_VERSION:-0.0.0}"
+          fi
+          if [[ ! "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo 'Release versions must have the form 1.2.3.' >&2
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+      - name: Select Xcode 26
+        run: sudo xcode-select --switch /Applications/Xcode_26.3.app
+      - name: Test
+        run: swift test
+      - name: Build and verify Homebrew bottle
+        run: bash scripts/build-bottle.sh "$VERSION" "$GITHUB_SHA"
+      - name: Upload bottle and formula
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: loki-homebrew
+          path: |
+            dist/bottles/*
+            dist/loki.rb
+          if-no-files-found: error
+      - name: Publish release and update tap
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" dist/bottles/*.bottle.tar.gz dist/bottles/SHA256SUMS dist/loki.rb \
+            --verify-tag --title "Loki $VERSION" --generate-notes
+          git switch main
+          git pull --ff-only origin main
+          mkdir -p Formula
+          cp dist/loki.rb Formula/loki.rb
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add Formula/loki.rb
+          git commit -m "Update Homebrew formula to $VERSION"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git -c credential.helper='!gh auth git-credential' push "https://github.com/$GH_REPO.git" HEAD:main; then
+              break
+            fi
+            if [[ "$attempt" == 3 ]]; then exit 1; fi
+          done

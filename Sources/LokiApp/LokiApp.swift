@@ -7,7 +7,10 @@ import SwiftUI
 enum Launcher {
     @MainActor
     static func main() async {
-        if CommandLine.arguments.contains("--diagnose") {
+        if CommandLine.arguments.contains("--version") {
+            let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "development"
+            print("Loki \(version)")
+        } else if CommandLine.arguments.contains("--diagnose") {
             await Diagnostics.run()
         } else {
             LokiApp.main()
