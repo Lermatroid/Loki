@@ -44,7 +44,7 @@ brew bottle --merge --write --no-commit ./*.bottle.json
 cp "$TAP_DIR/Formula/loki.rb" "$ROOT/dist/loki.rb"
 
 # Reinstall the bottled files to catch relocation and app-signature problems.
-CACHE_PATH=$(brew --cache --bottle "$FORMULA")
+CACHE_PATH=$(brew --cache --force-bottle "$FORMULA")
 mkdir -p "$(dirname "$CACHE_PATH")"
 cp ./*.bottle.tar.gz "$CACHE_PATH"
 brew uninstall "$FORMULA"
