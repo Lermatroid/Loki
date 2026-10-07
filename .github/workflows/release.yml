@@ -46,6 +46,8 @@ jobs:
             exit 1
           fi
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+      - name: Select Xcode 26
+        run: sudo xcode-select --switch /Applications/Xcode_26.3.app
       - name: Test
         run: swift test
       - name: Build and verify Homebrew bottle

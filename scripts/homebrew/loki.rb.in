@@ -6,7 +6,7 @@ class Loki < Formula
   sha256 "@SOURCE_SHA256@"
   license "MIT"
 
-  depends_on xcode: ["16.0", :build]
+  depends_on xcode: ["26.0", :build]
   depends_on :macos
   depends_on macos: :sonoma
 
