@@ -13,7 +13,7 @@
     <li>Toggle ports on and off</li>
     <li>Auto-reconnect</li>
     <li>Port service detection</li>
-    <li>Git worktree detection for port services</li>
+    <li>Git branch & worktree detection for port services</li>
     <li>Kill a hanging process on a port via the GUI</li>
     <li>Start at login</li>
 </ul>
